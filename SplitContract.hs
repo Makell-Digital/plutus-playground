@@ -5,6 +5,7 @@ import GHC.Generics (Generic)
 import Ledger (Ada, PaymentPubKeyHash (unPaymentPubKeyHash), ScriptContext (ScriptContext, scriptContextTxInfo), valuePaidTo)
 import Ledger.Ada qualified as Ada
 import Ledger.Constraints qualified as Constraints
+import Ledger.CardanoWallet (WalletNumber (..))
 import Ledger.Typed.Scripts qualified as Scripts
 
 import Playground.Contract
@@ -13,7 +14,7 @@ import PlutusTx qualified
 import PlutusTx.Prelude
 import Prelude qualified as Haskell
 import Schema (ToSchema)
-import Wallet.Emulator.Wallet (Wallet, mockWalletPaymentPubKeyHash)
+import Wallet.Emulator.Wallet (mockWalletPaymentPubKeyHash, fromWalletNumber)
 
 data SplitData =
     SplitData 
@@ -45,8 +46,8 @@ splitValidator = Scripts.mkTypedValidator @SplitValidator
 
 data LockArgs =
     LockArgs
-        { recipient1Wallet :: Wallet
-        , recipient2Wallet :: Wallet
+        { recipient1Wallet :: WalletNumber
+        , recipient2Wallet :: WalletNumber
         , totalAda         :: Ada
         }
     deriving stock (Haskell.Show, Generic)
@@ -65,8 +66,8 @@ unlock = endpoint @"unlock" (unlockFunds . mkSplitData)
 mkSplitData :: LockArgs -> SplitData
 mkSplitData LockArgs{recipient1Wallet, recipient2Wallet, totalAda} =
     SplitData
-        { recipient1 = mockWalletPaymentPubKeyHash recipient1Wallet
-        , recipient2 = mockWalletPaymentPubKeyHash recipient2Wallet
+        { recipient1 = mockWalletPaymentPubKeyHash (fromWalletNumber recipient1Wallet)
+        , recipient2 = mockWalletPaymentPubKeyHash (fromWalletNumber recipient2Wallet)
         , amount = totalAda
         }
 
